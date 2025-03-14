@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const CryptoJS = require('crypto-js')
 
 const app = express();
 app.use(cors());
@@ -15,7 +16,8 @@ mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
 const urlSchema = new mongoose.Schema({
     url: String,
     shortId: String,
-    device: String
+    device: String,
+    secret: String
 });
 
 const UrlModel = mongoose.model("Url", urlSchema);
@@ -29,13 +31,18 @@ function shortenUrl(url) {
     return string;
 }
 
+const decryptData = (url, secret) => {
+    const bytes = CryptoJS.AES.decrypt(url, secret);
+    return bytes.toString(CryptoJS.enc.Utf8);
+};
+
 app.post('/url', async (req, res) => {
-    const { url, device } = req.body;
+    const { url, device, secret } = req.body;
     const shortId = shortenUrl(url);
     const shortUrl = "https://urlshortener-lxro.onrender.com/" + shortId;
 
     try {
-        await UrlModel.create({ url, shortId, device });
+        await UrlModel.create({ url, shortId, device, secret });
         res.send(shortUrl);
     } catch (error) {
         console.error("Error:", error);
@@ -48,11 +55,12 @@ app.get('/:id', async (req, res) => {
     try {
         const record = await UrlModel.findOne({ shortId: id });
         if (!record) return res.status(404).send("Short URL not found");
-        res.redirect(record.url);
+        const val = decryptData(record.url, record.secret)
+        res.redirect(val);
     } catch (error) {
         console.error("Error:", error);
         res.status(500).send("Error retrieving URL");
     }
 });
-
+const PORT = process.env.PORT || 8080
 app.listen(8080, () => console.log("Server running on port 8080"));
