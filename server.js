@@ -32,7 +32,7 @@ function shortenUrl(url) {
 app.post('/url', async (req, res) => {
     const { url, device } = req.body;
     const shortId = shortenUrl(url);
-    const shortUrl = "http://localhost:8080/" + shortId;
+    const shortUrl = "https://urlshortener-lxro.onrender.com/" + shortId;
 
     try {
         await UrlModel.create({ url, shortId, device });
