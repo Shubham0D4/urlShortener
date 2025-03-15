@@ -31,9 +31,9 @@ function shortenUrl() {
     return string;
 }
 
-const decryptData = (url, secret) => {
+const decryptData = async (url, secret) => {
     try {
-        const bytes = CryptoJS.AES.decrypt(url, secret);
+        const bytes = await CryptoJS.AES.decrypt(url, secret);
         const decryptedUrl = bytes.toString(CryptoJS.enc.Utf8);
         if (!decryptedUrl) throw new Error("Decryption failed");
         return decryptedUrl;
