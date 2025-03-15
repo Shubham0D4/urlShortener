@@ -42,7 +42,7 @@ app.post('/url', async (req, res) => {
     const shortUrl = "https://urlshortener-lxro.onrender.com/" + shortenId;
 
     try {
-        await UrlModel.create({ url, shortId, device, secret });
+        await UrlModel.create({ url, shortenId, device, secret });
         res.send(shortUrl);
     } catch (error) {
         console.error("Error:", error);
