@@ -38,8 +38,8 @@ const decryptData = (url, secret) => {
 
 app.post('/url', async (req, res) => {
     const { url, device, secret } = req.body;
-    const shortId = shortenUrl(url);
-    const shortUrl = "https://urlshortener-lxro.onrender.com/" + shortId;
+    const shortenId = shortenUrl(url);
+    const shortUrl = "https://urlshortener-lxro.onrender.com/" + shortenId;
 
     try {
         await UrlModel.create({ url, shortId, device, secret });
