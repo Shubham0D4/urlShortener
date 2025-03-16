@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const CryptoJS = require('crypto-js');
+const CryptoJS = require('crypto-js')
 
 const app = express();
 app.use(cors());
@@ -15,7 +15,7 @@ mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
 
 const urlSchema = new mongoose.Schema({
     url: String,
-    shortId: String, // Use `shortId` instead of `shortenId`
+    shortId: String,
     device: String,
     secret: String
 });
@@ -31,22 +31,21 @@ function shortenUrl() {
     return string;
 }
 
-const decryptData = async (url, secret) => {
-    try {
-        const bytes = await CryptoJS.AES.decrypt(url, secret);
-        const decryptedUrl = bytes.toString(CryptoJS.enc.Utf8);
-        if (!decryptedUrl) throw new Error("Decryption failed");
-        return decryptedUrl;
-    } catch (error) {
-        console.error("Decryption Error:", error);
-        return null;
+const decryptData = (url, secretKey) => {
+    let encryptedBytes = atob(url).split("").map(char => char.charCodeAt(0));
+    let decrypted = '';
+
+    for (let i = 0; i < encryptedBytes.length; i++) {
+        decrypted += String.fromCharCode(encryptedBytes[i] ^ secretKey.charCodeAt(i % secretKey.length));
     }
-};
+
+    return decrypted;
+}
 
 app.post('/url', async (req, res) => {
     const { url, device, secret } = req.body;
     const shortId = shortenUrl();
-    const shortUrl = `https://urlshortener-lxro.onrender.com/${shortId}`;
+    const shortUrl = "https://urlshortener-lxro.onrender.com/" + shortId;
 
     try {
         await UrlModel.create({ url, shortId, device, secret });
@@ -62,16 +61,17 @@ app.get('/:id', async (req, res) => {
     try {
         const record = await UrlModel.findOne({ shortId: id });
         if (!record) return res.status(404).send("Short URL not found");
-
-        const originalUrl = decryptData(record.url, record.secret);
-        if (!originalUrl) return res.status(400).send("Invalid or incorrect secret key");
-
-        res.redirect(originalUrl);
+        console.log(record);
+        
+        // const val = decryptData(record.url, record.secret)
+        // console.log("hi");
+        
+        // console.log(val);
+        res.redirect(record.url);
     } catch (error) {
         console.error("Error:", error);
         res.status(500).send("Error retrieving URL");
     }
 });
-
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const PORT = process.env.PORT || 8080
+app.listen(8080, () => console.log("Server running on port 8080"));
